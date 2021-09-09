@@ -78,9 +78,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <CudaCompile Include="kernel.cu" />
+    <CudaCompile Include="Mesh.cu" />
+    <CudaCompile Include="Quaternion.cu" />
+    <CudaCompile Include="Triangle.cu" />
+    <CudaCompile Include="Vector3.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Drawing.h" />
+    <ClInclude Include="Mesh.cuh" />
+    <ClInclude Include="Quaternion.cuh" />
+    <ClInclude Include="Triangle.cuh" />
+    <ClInclude Include="Vector3.cuh" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Drawing.cpp" />
