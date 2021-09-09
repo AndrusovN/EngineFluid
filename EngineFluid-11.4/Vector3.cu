@@ -21,17 +21,19 @@ Vector3 Vector3::operator = (const Vector3& other) {
 	_x = other._x;
 	_y = other._y;
 	_z = other._z;
+
+	return *this;
 }
 
-const number_t Vector3::x() {
+const number_t Vector3::x() const {
 	return _x;
 }
 
-const number_t Vector3::y() {
+const number_t Vector3::y() const {
 	return _y;
 }
 
-const number_t Vector3::z() {
+const number_t Vector3::z() const {
 	return _z;
 }
 
@@ -45,12 +47,6 @@ void Vector3::set_y(number_t y) {
 
 void Vector3::set_z(number_t z) {
 	_z = z;
-}
-
-void Vector3::set_epsilon(number_t epsilon)
-{
-	assert(epsilon >= 0);
-	EPSILON = epsilon;
 }
 
 void Vector3::normalize() {

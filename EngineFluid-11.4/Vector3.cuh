@@ -7,10 +7,11 @@ const number_t NUMBER_T_INFTY = 3e38;
 #define SQRT sqrtf
 #define ATAN2 atan2f
 
+const number_t EPSILON = 0.000001f;
+
 class Vector3 {
 private:
 	number_t _x, _y, _z;
-	number_t EPSILON = 0.000001f;
 public:
 	__host__ __device__ Vector3();
 	__host__ __device__ Vector3(number_t x, number_t y, number_t z);
@@ -18,14 +19,13 @@ public:
 
 	__host__ __device__ Vector3 operator = (const Vector3& other);
 
-	__host__ __device__ const number_t x();
-	__host__ __device__ const number_t y();
-	__host__ __device__ const number_t z();
+	__host__ __device__ const number_t x() const;
+	__host__ __device__ const number_t y() const;
+	__host__ __device__ const number_t z() const;
 
 	__host__ __device__ void set_x(number_t x);
 	__host__ __device__ void set_y(number_t y);
 	__host__ __device__ void set_z(number_t z);
-	__host__ __device__ void set_epsilon(number_t epsilon);
 	__host__ __device__ void normalize();
 
 	__host__ __device__ const number_t magnitude() const;

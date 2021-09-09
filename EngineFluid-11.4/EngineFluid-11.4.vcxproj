@@ -85,6 +85,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Drawing.h" />
+    <ClInclude Include="ImportMesh.h" />
     <ClInclude Include="Mesh.cuh" />
     <ClInclude Include="Quaternion.cuh" />
     <ClInclude Include="Triangle.cuh" />
@@ -92,6 +93,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Drawing.cpp" />
+    <ClCompile Include="ImportMesh.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

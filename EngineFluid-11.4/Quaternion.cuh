@@ -14,15 +14,25 @@ public:
 
 	__host__ __device__ const Quaternion operator * (number_t value) const;
 	__host__ __device__ const Quaternion operator / (number_t value) const;
+
+	__host__ __device__ const Quaternion operator + (const Quaternion& other) const;
+	__host__ __device__ const Quaternion operator - (const Quaternion& other) const;
+
 	__host__ __device__ const Quaternion operator * (const Quaternion& other) const;
 	__host__ __device__ const bool operator == (const Quaternion& other) const;
 	__host__ __device__ const bool operator != (const Quaternion& other) const;
+	__host__ __device__ const Quaternion conjugated() const;
+	__host__ __device__ const Quaternion inversed() const;
 
 	__host__ __device__ const number_t magnitude() const;
 	__host__ __device__ const number_t sqrMagnitude() const;
 
 	__host__ __device__ const Vector3 toVector3() const;
 	__host__ __device__ const Vector3 applyToVector(Vector3 vector) const;
+
+	__host__ __device__ static Quaternion fromAngle(number_t angle, Vector3 axis);
+
+	static const Quaternion IDENTITY;
 };
 
 #endif
