@@ -1,6 +1,7 @@
 #include "Mesh.cuh"
 #include <assert.h>
 #include "ImportMesh.h"
+#include <typeinfo>
 
 Vector3 Mesh::rotatePoint(Vector3 point, Quaternion rotation)
 {
@@ -12,7 +13,6 @@ Mesh::Mesh(Vector3 position, number_t scale) : Mesh((Triangle*)nullptr, 0, posit
 Mesh::Mesh(Triangle* triangles, int size, Vector3 position, number_t scale)
 {
 	assert(scale < -1 * EPSILON || scale > EPSILON);
-	_appliedRotation = Quaternion();
 	_triangles = new Triangle[size];
 
 	for (int i = 0; i < size; i++)
@@ -29,7 +29,6 @@ Mesh::Mesh(Triangle* triangles, int size, Vector3 position, number_t scale)
 Mesh::Mesh(const char* filename, int stringSize, Vector3 position, number_t scale)
 {
 	assert(scale < -1 * EPSILON || scale > EPSILON);
-	_appliedRotation = Quaternion();
 	
 	std::vector<Triangle> triangles = importAssetMesh(std::string(filename, stringSize));
 
@@ -58,6 +57,11 @@ void Mesh::moveToCUDA()
 	_triangles = cudaTriangles;
 }
 
+int Mesh::typeId()
+{
+	return typeid(Mesh).hash_code();
+}
+
 Triangle Mesh::get_triangle(int index)
 {
 	assert(0 <= index && index < _triangles_size);
@@ -67,11 +71,6 @@ Triangle Mesh::get_triangle(int index)
 int Mesh::size()
 {
 	return _triangles_size;
-}
-
-void Mesh::setAppliedRotation(Quaternion rotation)
-{
-	rotate(_appliedRotation.inversed() * rotation);
 }
 
 void Mesh::rotate(Quaternion rotation)
@@ -96,11 +95,6 @@ void Mesh::translate(Vector3 offset)
 
 		_triangles[i] = Triangle(a, b, c);
 	}
-}
-
-void Mesh::setPosition(Vector3 position)
-{
-	translate(position - _center);
 }
 
 bool Mesh::isPointInside(Vector3 point)

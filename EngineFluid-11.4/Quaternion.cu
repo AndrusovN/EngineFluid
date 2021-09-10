@@ -20,6 +20,16 @@ const Quaternion Quaternion::operator/(number_t value) const
 	return *this * ((number_t)1 / value);
 }
 
+Quaternion Quaternion::operator*=(number_t value)
+{
+	return *this = *this * value;
+}
+
+Quaternion Quaternion::operator/=(number_t value)
+{
+	return *this = *this / value;
+}
+
 const Quaternion Quaternion::operator+(const Quaternion& other) const
 {
 	return Quaternion(_x + other._x, _y + other._y, _z + other._z, _w + other._w);
@@ -28,6 +38,16 @@ const Quaternion Quaternion::operator+(const Quaternion& other) const
 const Quaternion Quaternion::operator-(const Quaternion& other) const
 {
 	return *this + (other * -1);
+}
+
+Quaternion Quaternion::operator+=(const Quaternion& other)
+{
+	return *this = *this + other;
+}
+
+Quaternion Quaternion::operator-=(const Quaternion& other)
+{
+	return *this = *this - other;
 }
 
 const Quaternion Quaternion::operator*(const Quaternion& other) const
@@ -53,6 +73,21 @@ const Quaternion Quaternion::operator*(const Quaternion& other) const
 				- _z * other._y;
 
 	return Quaternion(x, y, z, w);
+}
+
+const Quaternion Quaternion::operator/(const Quaternion& other) const
+{
+	return *this * other.inversed();
+}
+
+Quaternion Quaternion::operator*=(const Quaternion& other)
+{
+	return *this = *this * other;
+}
+
+Quaternion Quaternion::operator/=(const Quaternion& other)
+{
+	return *this = *this / other;
 }
 
 const bool Quaternion::operator==(const Quaternion& other) const

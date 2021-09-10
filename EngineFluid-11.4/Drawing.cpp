@@ -91,6 +91,21 @@ void UIDrawer::resetColorMap(Color* colorMap)
     this->colorMap = colorMap;
 }
 
+Color* UIDrawer::getColorMap()
+{
+    return colorMap;
+}
+
+int UIDrawer::getWidth()
+{
+    return width;
+}
+
+int UIDrawer::getHeight()
+{
+    return height;
+}
+
 void UIDrawer::createWindow(HINSTANCE hInstance, const char* title)
 {
     // Create the window.

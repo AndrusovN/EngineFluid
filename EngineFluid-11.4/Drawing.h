@@ -16,6 +16,9 @@ public:
 	void clear();
 	void fill(Color color);
 	void resetColorMap(Color* colorMap);
+	Color* getColorMap();
+	int getWidth();
+	int getHeight();
 private:
 	void createWindow(HINSTANCE hInstance, const char* title);
 	void registerClass(HINSTANCE hInstance);

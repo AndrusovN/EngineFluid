@@ -2,14 +2,14 @@
 #define MESH
 #include "Triangle.cuh"
 #include "Quaternion.cuh"
+#include "Component.cuh"
 
-class Mesh {
+class Mesh : public Component {
 private:
 	Triangle* _triangles;
 	int _triangles_size = 0;
 	Vector3 _center = Vector3::ZERO;
 	number_t _scale = 1;
-	Quaternion _appliedRotation;
 
 	__host__ __device__ Vector3 rotatePoint(Vector3 point, Quaternion rotation);
 public:
@@ -19,17 +19,15 @@ public:
 
 	__host__ void moveToCUDA();
 
+	__host__ __device__ int typeId() override;
+
 	__host__ __device__ Triangle get_triangle(int index);
 
 	__host__ __device__ int size();
 
-	__host__ __device__ void setAppliedRotation(Quaternion rotation);
-
 	__host__ __device__ void rotate(Quaternion rotation);
 
 	__host__ __device__ void translate(Vector3 offset);
-
-	__host__ __device__ void setPosition(Vector3 position);
 
 	__host__ __device__ bool isPointInside(Vector3 point);
 

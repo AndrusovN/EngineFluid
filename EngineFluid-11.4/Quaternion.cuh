@@ -14,11 +14,19 @@ public:
 
 	__host__ __device__ const Quaternion operator * (number_t value) const;
 	__host__ __device__ const Quaternion operator / (number_t value) const;
+	__host__ __device__ Quaternion operator *= (number_t value);
+	__host__ __device__ Quaternion operator /= (number_t value);
 
 	__host__ __device__ const Quaternion operator + (const Quaternion& other) const;
 	__host__ __device__ const Quaternion operator - (const Quaternion& other) const;
+	__host__ __device__ Quaternion operator += (const Quaternion& other);
+	__host__ __device__ Quaternion operator -= (const Quaternion& other);
 
 	__host__ __device__ const Quaternion operator * (const Quaternion& other) const;
+	__host__ __device__ const Quaternion operator / (const Quaternion& other) const;
+	__host__ __device__ Quaternion operator *= (const Quaternion& other);
+	__host__ __device__ Quaternion operator /= (const Quaternion& other);
+
 	__host__ __device__ const bool operator == (const Quaternion& other) const;
 	__host__ __device__ const bool operator != (const Quaternion& other) const;
 	__host__ __device__ const Quaternion conjugated() const;
