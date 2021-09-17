@@ -52,7 +52,7 @@ const Vector3 Triangle::rayIntersection(const Vector3& startPoint, const Vector3
 		return point;
 	}
 	else {
-		return Vector3::INFINITY;
+		return Vector3::INFINITY_VECTOR;
 	}
 }
 

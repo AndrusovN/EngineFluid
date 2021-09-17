@@ -13,9 +13,9 @@ private:
 
 	__host__ __device__ Vector3 rotatePoint(Vector3 point, Quaternion rotation);
 public:
-	__host__ __device__ Mesh(Vector3 position = Vector3::ZERO, number_t scale = 1);
-	__host__ __device__ Mesh(Triangle* triangles, int size, Vector3 position = Vector3::ZERO, number_t scale = 1);
-	__host__ Mesh(const char* filename, int stringSize, Vector3 position = Vector3::ZERO, number_t scale = 1);
+	__host__ __device__ Mesh(GameObject* parent, Vector3 position = Vector3::ZERO, number_t scale = 1);
+	__host__ __device__ Mesh(GameObject* parent, Triangle* triangles, int size, Vector3 position = Vector3::ZERO, number_t scale = 1);
+	__host__ Mesh(GameObject* parent, const char* filename, int stringSize, Vector3 position = Vector3::ZERO, number_t scale = 1);
 
 	__host__ void moveToCUDA();
 

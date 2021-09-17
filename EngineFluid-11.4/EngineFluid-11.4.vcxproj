@@ -77,19 +77,34 @@
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <CudaCompile Include="Camera.cu" />
+    <CudaCompile Include="GameManager.cu" />
+    <CudaCompile Include="GameObject.cu" />
     <CudaCompile Include="kernel.cu" />
+    <CudaCompile Include="Light.cu" />
     <CudaCompile Include="Mesh.cu" />
     <CudaCompile Include="Quaternion.cu" />
+    <CudaCompile Include="Scene.cu" />
+    <CudaCompile Include="Transform.cu" />
     <CudaCompile Include="Triangle.cu" />
     <CudaCompile Include="Vector3.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.cuh" />
+    <ClInclude Include="Component.cuh" />
+    <ClInclude Include="GameManager.cuh" />
+    <ClInclude Include="IComponent.cuh" />
     <ClInclude Include="Drawing.h" />
+    <ClInclude Include="GameObject.cuh" />
     <ClInclude Include="ImportMesh.h" />
+    <ClInclude Include="Light.cuh" />
     <ClInclude Include="Mesh.cuh" />
     <ClInclude Include="Quaternion.cuh" />
+    <ClInclude Include="Scene.cuh" />
+    <ClInclude Include="Transform.cuh" />
     <ClInclude Include="Triangle.cuh" />
     <ClInclude Include="Vector3.cuh" />
+    <ClInclude Include="VisualEffect.cuh" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Drawing.cpp" />

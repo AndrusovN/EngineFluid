@@ -8,9 +8,9 @@ Vector3 Mesh::rotatePoint(Vector3 point, Quaternion rotation)
 	return _center + (rotation.applyToVector(point - _center));
 }
 
-Mesh::Mesh(Vector3 position, number_t scale) : Mesh((Triangle*)nullptr, 0, position, scale) {}
+Mesh::Mesh(GameObject* parent, Vector3 position, number_t scale) : Mesh(parent, (Triangle*)nullptr, 0, position, scale) {}
 
-Mesh::Mesh(Triangle* triangles, int size, Vector3 position, number_t scale)
+Mesh::Mesh(GameObject* parent, Triangle* triangles, int size, Vector3 position, number_t scale) : Component(parent)
 {
 	assert(scale < -1 * EPSILON || scale > EPSILON);
 	_triangles = new Triangle[size];
@@ -26,7 +26,7 @@ Mesh::Mesh(Triangle* triangles, int size, Vector3 position, number_t scale)
 	setScale(scale);
 }
 
-Mesh::Mesh(const char* filename, int stringSize, Vector3 position, number_t scale)
+Mesh::Mesh(GameObject* parent, const char* filename, int stringSize, Vector3 position, number_t scale) : Component(parent)
 {
 	assert(scale < -1 * EPSILON || scale > EPSILON);
 	

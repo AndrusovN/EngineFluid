@@ -12,6 +12,8 @@ private:
 		_right = Vector3(1, 0, 0),
 		_up = Vector3(0, 1, 0);
 public:
+	Transform(GameObject* parent);
+
 	__host__ __device__ int typeId() override;
 
 	__host__ __device__ void rotate(Quaternion rotation) override;

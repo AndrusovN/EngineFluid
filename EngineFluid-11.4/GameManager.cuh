@@ -28,6 +28,8 @@ public:
 
 	Scene* getScene(int index);
 
+	Scene* getCurrentScene();
+
 	void stop();
 
 	void run();

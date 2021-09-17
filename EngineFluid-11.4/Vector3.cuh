@@ -58,7 +58,7 @@ public:
 
 	static __host__ __device__ number_t distance(const Vector3& a, const Vector3& b);
 	static __host__ __device__ number_t sqrDistance(const Vector3& a, const Vector3& b);
-	static const Vector3 UP, DOWN, LEFT, RIGHT, FORWARD, BACK, ZERO, INFINITY;
+	static const Vector3 UP, DOWN, LEFT, RIGHT, FORWARD, BACK, ZERO, INFINITY_VECTOR;
 };
 
 #endif

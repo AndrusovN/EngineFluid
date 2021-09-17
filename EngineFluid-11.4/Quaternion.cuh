@@ -3,6 +3,8 @@
 
 #include "Vector3.cuh"
 
+const number_t PI = 3.14159265358979323846264338327950;
+
 class Quaternion {
 private:
 	number_t _x, _y, _z, _w;

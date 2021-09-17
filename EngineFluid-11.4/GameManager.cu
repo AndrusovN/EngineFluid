@@ -43,6 +43,11 @@ Scene* GameManager::getScene(int index)
 	return _scenes[index];
 }
 
+Scene* GameManager::getCurrentScene()
+{
+	return _scenes[_currentSceneId];
+}
+
 void GameManager::stop()
 {
 	_stopped = true;

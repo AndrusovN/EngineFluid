@@ -2,6 +2,12 @@
 #include <assert.h>
 #include <typeinfo>
 
+Transform::Transform(GameObject* parent) : Component(parent)
+{
+	_position = Vector3::ZERO;
+	_rotation = Quaternion::IDENTITY;
+}
+
 int Transform::typeId()
 {
 	return typeid(Transform).hash_code();
