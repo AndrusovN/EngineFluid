@@ -20,6 +20,7 @@ void startGame(UIDrawer* drawer)
 	GameObject cubeObj = GameObject();
 	Transform cubeTransform = Transform(&cubeObj);
 	Mesh cubeMesh = Mesh(&cubeObj, "Assets\\Cube.obj", 15);
+	cubeMesh.moveToCUDA();
 
 	cubeObj.addComponent(&cubeMesh);
 	cubeObj.addComponent(&cubeTransform);

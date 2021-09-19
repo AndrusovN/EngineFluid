@@ -15,17 +15,17 @@ public:
 		return _gameObject;
 	}
 
-	void assignToGameObject(GameObject* gameObject) {
-		_gameObject = gameObject;
+	__host__ __device__ virtual void resetGameObject(GameObject* object) {
+		_gameObject = object;
 	}
 
-	void start() override {}
-	void update() override {}
-	void awake() override {}
-	void lateUpdate() override {}
-	void rotate(Quaternion rotation) override {}
-	void translate(Vector3 offset) override {}
-	void onDestroy() override {}
+	__host__ __device__ void start() override {}
+	__host__ __device__ void update() override {}
+	__host__ __device__ void awake() override {}
+	__host__ __device__ void deviceUpdate() override {}
+	__host__ __device__ void rotate(Quaternion rotation) override {}
+	__host__ __device__ void translate(Vector3 offset) override {}
+	__host__ __device__ void onDestroy() override {}
 };
 
 #endif

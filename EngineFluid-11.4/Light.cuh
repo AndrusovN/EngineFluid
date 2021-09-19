@@ -5,13 +5,15 @@
 #include "Transform.cuh"
 #include "Drawing.h"
 
-typedef char byte;
+typedef char _byte;
+
+const int GENERAL_LIGHT_TYPEID = 2;
 
 struct EngineColor {
-	byte r, g, b, a;
+	_byte r, g, b, a;
 
 	EngineColor();
-	EngineColor(byte r, byte g, byte b, byte a = 1);
+	EngineColor(_byte r, _byte g, _byte b, _byte a = 1);
 	EngineColor(Color base);
 
 	EngineColor operator = (const EngineColor& other);
@@ -26,13 +28,18 @@ private:
 	Transform* _transform;
 	EngineColor _lightColor;
 public:
-	int typeId() override;
+	__host__ __device__ const int typeId() const override;
 
 	GeneralLight(GameObject* parent, EngineColor lightColor = EngineColor(255, 255, 255));
 
 	__host__ __device__ void awake() override;
 
 	__host__ __device__ EngineColor getLight(Vector3 normal);
+
+	__host__ void moveToDevice() override;
+	__host__ void moveToHost() override;
+
+	__host__ __device__ void resetGameObject(GameObject* object) override;
 };
 
 #endif

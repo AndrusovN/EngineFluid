@@ -1,5 +1,5 @@
 #include "GameManager.cuh"
-#include <assert.h>
+#include "assert.cuh"
 
 GameManager* GameManager::_instance = nullptr;
 
@@ -55,20 +55,34 @@ void GameManager::stop()
 
 void GameManager::run()
 {
-	assert(scenes.size() > 0);
+	assert(_scenes.size() > 0);
 
 	changeScene(0);
 
 	while (!_stopped) {
 		_fieldsMutex.lock();
-		for (auto component : _scenes[_currentSceneId]->components())
+		vector<Component*>* components = _scenes[_currentSceneId]->components();
+
+		for (int i = 0; i < components->size(); i++)
 		{
-			component->update();
+			(*components)[i]->update();
 		}
-		for (auto component : _scenes[_currentSceneId]->components())
+
+		delete components;
+
+		_scenes[_currentSceneId]->moveToDevice();
+
+		vector<Component*>* components = _scenes[_currentSceneId]->components();
+
+		for (int i = 0; i < components->size(); i++)
 		{
-			component->lateUpdate();
+			(*components)[i]->deviceUpdate();
 		}
+
+		delete components;
+
+		_scenes[_currentSceneId]->moveToHost();
+
 		_fieldsMutex.unlock();
 
 		Color* colorMap = drawer->getColorMap();
@@ -79,6 +93,8 @@ void GameManager::run()
 		{
 			effect->apply(colorMap, width, height, _scenes[_currentSceneId]);
 		}
+
+		drawer->resetColorMap(colorMap);
 
 		drawer->display();
 	}
@@ -92,15 +108,19 @@ void GameManager::changeScene(int sceneIndex)
 
 	_currentSceneId = sceneIndex;
 
-	for (auto component : _scenes[_currentSceneId]->components())
+	vector<Component*>* components = _scenes[_currentSceneId]->components();
+
+	for (int i = 0; i < components->size(); i++)
 	{
-		component->awake();
+		(*components)[i]->awake();
 	}
 
-	for (auto component : _scenes[_currentSceneId]->components())
+	for (int i = 0; i < components->size(); i++)
 	{
-		component->start();
+		(*components)[i]->start();
 	}
+
+	delete components;
 
 	_fieldsMutex.unlock();
 }

@@ -1,5 +1,5 @@
 #include "Triangle.cuh"
-#include <assert.h>
+#include "assert.cuh"
 
 const bool Triangle::isInsideTriangle(Vector3 point) const
 {

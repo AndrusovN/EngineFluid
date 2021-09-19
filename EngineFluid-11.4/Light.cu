@@ -1,5 +1,4 @@
 #include "Light.cuh"
-#include <typeinfo>
 
 
 EngineColor::EngineColor()
@@ -10,7 +9,7 @@ EngineColor::EngineColor()
 	a = 1;
 }
 
-EngineColor::EngineColor(byte r, byte g, byte b, byte a)
+EngineColor::EngineColor(_byte r, _byte g, _byte b, _byte a)
 {
 	this->r = r;
 	this->g = g;
@@ -65,9 +64,9 @@ Color EngineColor::toWinColor()
 }
 
 
-int GeneralLight::typeId()
+const int GeneralLight::typeId() const
 {
-	return typeid(GeneralLight).hash_code();
+	return GENERAL_LIGHT_TYPEID;
 }
 
 GeneralLight::GeneralLight(GameObject* parent, EngineColor lightColor) : Component(parent)
@@ -88,4 +87,18 @@ EngineColor GeneralLight::getLight(Vector3 normal)
 	e.a = angle_parameter;
 	e = e + EngineColor(0, 0, 0, 1);
 	return e;
+}
+
+void GeneralLight::moveToDevice()
+{
+}
+
+void GeneralLight::moveToHost()
+{
+}
+
+void GeneralLight::resetGameObject(GameObject* object)
+{
+	Component::resetGameObject(object);
+	_transform = object->getComponentOfType<Transform>();
 }

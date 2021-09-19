@@ -3,6 +3,8 @@
 
 #include "Component.cuh"
 
+const int TRANSFORM_TYPE_ID = 4;
+
 class Transform : public Component {
 private:
 	Vector3 _position;
@@ -11,10 +13,12 @@ private:
 	Vector3 _forward = Vector3(0, 0, 1),
 		_right = Vector3(1, 0, 0),
 		_up = Vector3(0, 1, 0);
+
+	bool _isOnDevice = false;;
 public:
 	Transform(GameObject* parent);
 
-	__host__ __device__ int typeId() override;
+	__host__ __device__ const int typeId() const override;
 
 	__host__ __device__ void rotate(Quaternion rotation) override;
 	__host__ __device__ void translate(Vector3 offset) override;
@@ -31,6 +35,9 @@ public:
 	__host__ __device__ Vector3 left();
 	__host__ __device__ Vector3 up();
 	__host__ __device__ Vector3 down();
+
+	__host__ void moveToHost() override;
+	__host__ void moveToDevice() override;
 };
 
 #endif

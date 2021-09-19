@@ -9,7 +9,7 @@ const	Vector3 Vector3::UP = Vector3(0, 1, 0),
 		Vector3::FORWARD = Vector3(0, 0, 1), 
 		Vector3::BACK = Vector3(0, 0, -1), 
 		Vector3::ZERO = Vector3(0, 0, 0),
-		Vector3::INFINITY = Vector3((number_t)NUMBER_T_INFTY, (number_t)NUMBER_T_INFTY, (number_t)NUMBER_T_INFTY);
+		Vector3::INFINITY_VECTOR = Vector3((number_t)NUMBER_T_INFTY, (number_t)NUMBER_T_INFTY, (number_t)NUMBER_T_INFTY);
 
 Vector3::Vector3() : _x(0), _y(0), _z(0) {}
 

@@ -1,6 +1,7 @@
 #include "Transform.cuh"
-#include <assert.h>
-#include <typeinfo>
+#include "assert.cuh"
+#include "thrust/device_vector.h"
+#include "thrust/host_vector.h"
 
 Transform::Transform(GameObject* parent) : Component(parent)
 {
@@ -8,9 +9,9 @@ Transform::Transform(GameObject* parent) : Component(parent)
 	_rotation = Quaternion::IDENTITY;
 }
 
-int Transform::typeId()
+const int Transform::typeId() const
 {
-	return typeid(Transform).hash_code();
+	return TRANSFORM_TYPE_ID;
 }
 
 void Transform::rotate(Quaternion rotation)
@@ -18,12 +19,22 @@ void Transform::rotate(Quaternion rotation)
 	assert(rotation.magnitude() > EPSILON);
 	rotation = rotation / rotation.magnitude();
 
-	for (auto _component : gameObject()->getComponents())
-	{
-		if ((void*)_component == (void*)this) {
-			continue;
+	if (_isOnDevice) {
+		thrust::device_vector<Component*> components = gameObject()->getComponentsDevice();
+		for (int i = 0; i < components.size(); i++)
+		{
+			if (components[i] == this) continue;
+			Component* c = components[i];
+			c->rotate(rotation);
 		}
-		_component->rotate(rotation);
+	}
+	else {
+		thrust::host_vector<Component*> components = gameObject()->getComponentsHost();
+		for (int i = 0; i < components.size(); i++)
+		{
+			if (components[i] == this) continue;
+			components[i]->rotate(rotation);
+		}
 	}
 
 	_forward = rotation.applyToVector(_forward);
@@ -35,12 +46,22 @@ void Transform::rotate(Quaternion rotation)
 
 void Transform::translate(Vector3 offset)
 {
-	for (auto _component : gameObject()->getComponents())
-	{
-		if ((void*)_component == (void*)this) {
-			continue;
+	if (_isOnDevice) {
+		thrust::device_vector<Component*> components = gameObject()->getComponentsDevice();
+		for (int i = 0; i < components.size(); i++)
+		{
+			if (components[i] == this) continue;
+			Component* c = components[i];
+			c->translate(offset);
 		}
-		_component->translate(offset);
+	}
+	else {
+		thrust::host_vector<Component*> components = gameObject()->getComponentsHost();
+		for (int i = 0; i < components.size(); i++)
+		{
+			if (components[i] == this) continue;
+			components[i]->translate(offset);
+		}
 	}
 
 	_position += offset;
@@ -94,4 +115,14 @@ Vector3 Transform::up()
 Vector3 Transform::down()
 {
 	return _up * -1;
+}
+
+void Transform::moveToHost()
+{
+	_isOnDevice = false;
+}
+
+void Transform::moveToDevice()
+{
+	_isOnDevice = true;
 }

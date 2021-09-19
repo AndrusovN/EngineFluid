@@ -3,30 +3,50 @@
 
 #include "GameObject.cuh"
 #include "Component.cuh"
-#include <map>
-#include <typeinfo>
+
+#include "thrust/device_vector.h"
+#include "thrust/host_vector.h"
 
 typedef int TypeId;
 
-class Scene {
-private:
-	std::vector<GameObject*> _gameObjects;
-	std::multimap<TypeId, Component*> _components;
 
+class Scene : public IMovable {
+private:
+	thrust::host_vector<GameObject*> _gameObjectsHost;
+	thrust::host_vector<Component*> _componentsHost;
+
+	thrust::device_vector<GameObject*> _gameObjectsDevice;
+	thrust::device_vector<Component*> _componentsDevice;
+
+	bool _isOnDevice = false;
+
+	void recalculateComponents();
 public:
 	Scene();
-	Scene(std::vector<GameObject*> gameObjects);
+	Scene(thrust::host_vector<GameObject*> gameObjects);
 
 	template <typename Type>
-	std::vector<Type*> getComponents() {
-		std::vector<Type*> result;
+	vector<Type*>* getComponents() {
+		vector<Type*> result;
 
-		TypeId id = typeid(Type).hash_code();
-		for (auto ptr = _components.lower_bound(id); 
-			ptr != _components.end() && instanceof<Type>(*ptr); 
-			ptr++)
+		if (_isOnDevice) {
+			result = new thrust::device_vector<Type*>();
+		}
+		else {
+			result = new thrust::host_vector<Type*>();
+		}
+
+		Component* test = (Component*)(new Type());
+		TypeId id = (test->typeId();
+		delete test;
+
+		vector<Component*>* components = _isOnDevice ? (vector<Component*>*)&_componentsDevice : (vector<Component*>*)&_componentsHost;
+
+		for (int i = 0; i < components->size(); i++)
 		{
-			result.push_back((Type*)*ptr);
+			if ((*components)[i]->typeId() == id) {
+				result->push_back((*components)[i]);
+			}
 		}
 
 		return result;
@@ -34,16 +54,27 @@ public:
 
 	template <typename Type>
 	Type* getComponent() {
-		TypeId id = typeid(Type);
-		auto ptr = _components.lower_bound(id);
-		if (ptr != _components.end() && instanceof<Type>(*ptr)) {
-			return *ptr;
+		Component* test = (Component*)(new Type());
+		TypeId id = (test->typeId();
+		delete test;
+
+		vector<Component*>* components = _isOnDevice ? &_componentsDevice : &_componentsHost;
+
+		for (int i = 0; i < components->size(); i++)
+		{
+			if ((*components)[i]->typeId() == id) {
+				return (*components)[i]);
+			}
 		}
+		
 		return nullptr;
 	}
 
-	std::vector<GameObject*> gameObjects();
-	std::vector<Component*> components();
+	vector<GameObject*>* gameObjects();
+	vector<Component*>* components();
+
+	__host__ void moveToHost() override;
+	__host__ void moveToDevice() override;
 };
 
 #endif

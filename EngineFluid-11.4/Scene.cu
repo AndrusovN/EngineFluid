@@ -1,40 +1,105 @@
 #include "Scene.cuh"
-#include <utility>
-#include <assert.h>
+#include "assert.h"
 
 
-Scene::Scene() {}
-
-Scene::Scene(std::vector<GameObject*> gameObjects)
+void Scene::recalculateComponents()
 {
-	_gameObjects = std::vector<GameObject*>(gameObjects.size());
-	std::copy(gameObjects.begin(), gameObjects.end(), _gameObjects);
+	vector<Component*>* components = (_isOnDevice ? (vector<Component*>*)(&_componentsDevice) : (vector<Component*>*)(&_componentsHost));
 
-	_components = std::multimap<TypeId, Component*>();
-	for (auto gameObject : gameObjects)
+	vector<GameObject*>* gameObjects = _isOnDevice ? (vector<GameObject*>*) & _gameObjectsDevice : (vector<GameObject*>*) & _gameObjectsHost;
+
+	for (int i = 0; i < gameObjects->size(); i++)
 	{
-		for (auto component : gameObject->getComponents())
-		{
-			Component* _component = static_cast<Component*>(component);
-			assert(_component != nullptr);
+		if (_isOnDevice) {
+			thrust::device_vector<Component*> goComponents = (*gameObjects)[i]->getComponentsDevice();
 
-			_components.insert(std::pair<TypeId, Component*>(component->typeId(), _component));
+			for (int j = 0; j < goComponents.size(); j++)
+			{
+				components->push_back(goComponents[j]);
+			}
+		}
+		else {
+			thrust::host_vector<Component*> goComponents = (*gameObjects)[i]->getComponentsHost();
+
+			for (int j = 0; j < goComponents.size(); j++)
+			{
+				components->push_back(goComponents[j]);
+			}
 		}
 	}
 }
 
-std::vector<GameObject*> Scene::gameObjects()
+Scene::Scene() {}
+
+Scene::Scene(thrust::host_vector<GameObject*> gameObjects)
 {
-	std::vector<GameObject*> result(_gameObjects.size());
-	std::copy(_gameObjects.begin(), _gameObjects.end(), result);
+	_gameObjectsHost = thrust::host_vector<GameObject*>(gameObjects.size());
+	thrust::copy(gameObjects.begin(), gameObjects.end(), _gameObjectsHost.begin());
+
+	recalculateComponents();
+}
+
+vector<GameObject*>* Scene::gameObjects()
+{
+	vector<GameObject*>* result;
+	if (_isOnDevice) {
+		result = (vector<GameObject*>*)(new thrust::device_vector<GameObject*>());
+		thrust::copy(_gameObjectsDevice.begin(), _gameObjectsDevice.end(), result->begin());
+	}
+	else {
+		result = (vector<GameObject*>*)(new thrust::host_vector<GameObject*>());
+		thrust::copy(_gameObjectsHost.begin(), _gameObjectsHost.end(), result->begin());
+	}
+	
+	return result;
+}
+
+vector<Component*>* Scene::components()
+{
+	vector<Component*>* result;
+	if (_isOnDevice) {
+		result = (vector<Component*>*)(new thrust::device_vector<Component*>());
+		thrust::copy(_componentsDevice.begin(), _componentsDevice.end(), result->begin());
+	}
+	else {
+		result = (vector<Component*>*)(new thrust::host_vector<Component*>());
+		thrust::copy(_componentsHost.begin(), _componentsHost.end(), result->begin());
+	}
 
 	return result;
 }
 
-std::vector<Component*> Scene::components()
+void Scene::moveToHost()
 {
-	std::vector<Component*> result(_components.size());
-	std::copy(_components.begin(), _components.end(), result);
+	_isOnDevice = false;
+	_gameObjectsHost = thrust::host_vector<GameObject*>(_gameObjectsDevice.size());
+	for (int i = 0; i < _gameObjectsDevice.size(); i++)
+	{
+		GameObject* go = new GameObject();
+		cudaMemcpy(go, _gameObjectsDevice[i], sizeof(GameObject), cudaMemcpyDeviceToHost);
+		cudaFree(_gameObjectsDevice[i]);
+		go->moveToHost();
+		
+		_gameObjectsHost[i] = go;
+	}
 
-	return result;
+	recalculateComponents();
+}
+
+void Scene::moveToDevice()
+{
+	_isOnDevice = true;
+	_gameObjectsDevice = thrust::device_vector<GameObject*>(_gameObjectsHost.size());
+	for (int i = 0; i < _gameObjectsHost.size(); i++)
+	{
+		GameObject* go = nullptr;
+		cudaMalloc(&go, sizeof(GameObject));
+		cudaMemcpy(go, _gameObjectsHost[i], sizeof(GameObject), cudaMemcpyHostToDevice);
+		delete _gameObjectsHost[i];
+		go->moveToDevice();
+
+		_gameObjectsDevice[i] = go;
+	}
+
+	recalculateComponents();
 }

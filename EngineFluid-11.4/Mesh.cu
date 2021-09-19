@@ -1,11 +1,22 @@
 #include "Mesh.cuh"
-#include <assert.h>
+#include "assert.cuh"
 #include "ImportMesh.h"
-#include <typeinfo>
 
 Vector3 Mesh::rotatePoint(Vector3 point, Quaternion rotation)
 {
 	return _center + (rotation.applyToVector(point - _center));
+}
+
+int Mesh::countIntersections(Vector3 from, Vector3 direction)
+{
+	int result = 0;
+	for (int i = 0; i < _triangles_size; i++)
+	{
+		Vector3 intersection = _triangles[i].rayIntersection(from, direction);
+		if (intersection != Vector3::INFINITY_VECTOR) {
+			result++;
+		}
+	}
 }
 
 Mesh::Mesh(GameObject* parent, Vector3 position, number_t scale) : Mesh(parent, (Triangle*)nullptr, 0, position, scale) {}
@@ -57,9 +68,9 @@ void Mesh::moveToCUDA()
 	_triangles = cudaTriangles;
 }
 
-int Mesh::typeId()
+const int Mesh::typeId() const
 {
-	return typeid(Mesh).hash_code();
+	return MESH_TYPE_ID;
 }
 
 Triangle Mesh::get_triangle(int index)
@@ -99,18 +110,15 @@ void Mesh::translate(Vector3 offset)
 
 bool Mesh::isPointInside(Vector3 point)
 {
-	bool variant = false;
-	for (int i = 0; i < _triangles_size; i++)
-	{
-		bool currentState = _triangles[i].isInside(point);
-		if (variant != 0 && currentState != variant) {
-			return false;
-		}
-
-		variant = currentState;
+	Vector3 firstTry = Vector3::UP;
+	int intersectionNumber = countIntersections(point, firstTry);
+	if (intersectionNumber % 2 == 1) {
+		return true;
 	}
 
-	return true;
+	Vector3 secondTry = Vector3::RIGHT;
+	intersectionNumber = countIntersections(point, secondTry);
+	return (intersectionNumber % 2 == 1);
 }
 
 void Mesh::setScale(number_t scale)
@@ -134,5 +142,18 @@ void Mesh::scale(number_t times)
 number_t Mesh::getScale()
 {
 	return _scale;
+}
+
+void Mesh::moveToDevice()
+{
+	moveToCUDA();
+}
+
+void Mesh::moveToHost()
+{
+	Triangle* hostTriangles = new Triangle[_triangles_size];
+	cudaMemcpy(_triangles, hostTriangles, _triangles_size * sizeof(Triangle), cudaMemcpyDeviceToHost);
+	cudaFree(_triangles);
+	_triangles = hostTriangles;
 }
 
