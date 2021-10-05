@@ -1,7 +1,10 @@
+#define NOMINMAX
 #include "Light.cuh"
 
+#define min(a, b) ((a) < (b) ? (a) : (b))
+#define max(a, b) ((a) < (b) ? (b) : (a))
 
-EngineColor::EngineColor()
+__host__ __device__ EngineColor::EngineColor()
 {
 	r = 0;
 	g = 0;
@@ -9,7 +12,7 @@ EngineColor::EngineColor()
 	a = 1;
 }
 
-EngineColor::EngineColor(_byte r, _byte g, _byte b, _byte a)
+__host__ __device__ EngineColor::EngineColor(_byte r, _byte g, _byte b, _byte a)
 {
 	this->r = r;
 	this->g = g;
@@ -17,7 +20,7 @@ EngineColor::EngineColor(_byte r, _byte g, _byte b, _byte a)
 	this->a = a;
 }
 
-EngineColor::EngineColor(Color base)
+__host__ __device__ EngineColor::EngineColor(Color base)
 {
 	// windows.h COLORREF (a.k.a. Color there) is actually unsigned long long
 	// so it stores data like this:
@@ -29,7 +32,7 @@ EngineColor::EngineColor(Color base)
 	a = 1;
 }
 
-EngineColor EngineColor::operator=(const EngineColor& other)
+__host__ __device__ EngineColor EngineColor::operator=(const EngineColor& other)
 {
 	r = other.r;
 	g = other.g;
@@ -39,7 +42,7 @@ EngineColor EngineColor::operator=(const EngineColor& other)
 	return *this;
 }
 
-const EngineColor EngineColor::operator+(const EngineColor& other) const
+__host__ __device__ const EngineColor EngineColor::operator+(const EngineColor& other) const
 {
 	int _r = (int)r + other.r;
 	int _b = (int)b + other.b;
@@ -50,7 +53,7 @@ const EngineColor EngineColor::operator+(const EngineColor& other) const
 	return EngineColor((_r * 255) / _a, (_g * 255) / _a, (_b * 255) / _a, min(a, 255));
 }
 
-const EngineColor EngineColor::operator==(const EngineColor& other) const
+__host__ __device__ const EngineColor EngineColor::operator==(const EngineColor& other) const
 {
 	return r == other.r &&
 		g == other.g &&
@@ -58,28 +61,28 @@ const EngineColor EngineColor::operator==(const EngineColor& other) const
 		a == other.a;
 }
 
-Color EngineColor::toWinColor()
+__host__ __device__ Color EngineColor::toWinColor()
 {
 	return RGB(r, g, b);
 }
 
 
-const int GeneralLight::typeId() const
+__host__ __device__ int GeneralLight::typeId() const
 {
 	return GENERAL_LIGHT_TYPEID;
 }
 
-GeneralLight::GeneralLight(GameObject* parent, EngineColor lightColor) : Component(parent)
+__host__ __device__ GeneralLight::GeneralLight(GameObject* parent, EngineColor lightColor) : Component(parent)
 {
 	_lightColor = lightColor;
 }
 
-void GeneralLight::awake()
+__host__ __device__ void GeneralLight::awake()
 {
 	_transform = gameObject()->getComponentOfType<Transform>();
 }
 
-EngineColor GeneralLight::getLight(Vector3 normal)
+__host__ __device__ EngineColor GeneralLight::getLight(Vector3 normal)
 {
 	int angle_parameter = max(normal.angle_cos(_transform->forward()), 0) * 255;
 
@@ -89,15 +92,15 @@ EngineColor GeneralLight::getLight(Vector3 normal)
 	return e;
 }
 
-void GeneralLight::moveToDevice()
+__host__ void GeneralLight::moveToDevice()
 {
 }
 
-void GeneralLight::moveToHost()
+__host__ void GeneralLight::moveToHost()
 {
 }
 
-void GeneralLight::resetGameObject(GameObject* object)
+__host__ __device__ void GeneralLight::resetGameObject(GameObject* object)
 {
 	Component::resetGameObject(object);
 	_transform = object->getComponentOfType<Transform>();

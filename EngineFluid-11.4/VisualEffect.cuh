@@ -6,7 +6,7 @@
 
 class VisualEffect {
 public:
-	virtual void apply (Color* screen, int width, int height, Scene* scene) = 0;
+	__host__ __device__ virtual void apply (Color* screen, int width, int height, Scene* scene) = 0;
 };
 
 #endif

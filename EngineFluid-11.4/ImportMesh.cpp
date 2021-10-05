@@ -72,7 +72,7 @@ std::vector<Vector3> readVertices(std::ifstream& file, std::string& data) {
 std::vector<Vector3> readNormals(std::ifstream& file, std::string& data) {
 	std::vector<Vector3> normals;
 	Vector3 vertice;
-	int num;
+	int num = 0;
 
 	Vector3 normal;
 

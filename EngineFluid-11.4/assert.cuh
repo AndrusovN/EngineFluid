@@ -3,7 +3,7 @@
 
 #define assert(x) {\
 	if (!(x)) {\
-		int q = 0 / 0;\
+		\
 	}\
 }
 

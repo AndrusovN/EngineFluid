@@ -3,49 +3,35 @@
 
 #include "GameObject.cuh"
 #include "Component.cuh"
-
-#include "thrust/device_vector.h"
-#include "thrust/host_vector.h"
+#include "Vector.cuh"
 
 typedef int TypeId;
 
 
 class Scene : public IMovable {
 private:
-	thrust::host_vector<GameObject*> _gameObjectsHost;
-	thrust::host_vector<Component*> _componentsHost;
-
-	thrust::device_vector<GameObject*> _gameObjectsDevice;
-	thrust::device_vector<Component*> _componentsDevice;
+	Vector<GameObject> _gameObjects;
+	Vector<Component> _components;
 
 	bool _isOnDevice = false;
 
-	void recalculateComponents();
+	__host__ __device__ void recalculateComponents();
 public:
-	Scene();
-	Scene(thrust::host_vector<GameObject*> gameObjects);
+	__host__ __device__ Scene();
+	__host__ __device__ Scene(Vector<GameObject> gameObjects);
 
 	template <typename Type>
-	vector<Type*>* getComponents() {
-		vector<Type*> result;
-
-		if (_isOnDevice) {
-			result = new thrust::device_vector<Type*>();
-		}
-		else {
-			result = new thrust::host_vector<Type*>();
-		}
+	__host__ __device__ Vector<Type>* getComponents() {
+		Vector<Type>* result = new Vector<Type>();
 
 		Component* test = (Component*)(new Type());
-		TypeId id = (test->typeId();
+		TypeId id = (test->typeId());
 		delete test;
 
-		vector<Component*>* components = _isOnDevice ? (vector<Component*>*)&_componentsDevice : (vector<Component*>*)&_componentsHost;
-
-		for (int i = 0; i < components->size(); i++)
+		for (int i = 0; i < _components.size(); i++)
 		{
-			if ((*components)[i]->typeId() == id) {
-				result->push_back((*components)[i]);
+			if (_components[i]->typeId() == id) {
+				result->push((Type*)(_components[i]));
 			}
 		}
 
@@ -53,25 +39,23 @@ public:
 	}
 
 	template <typename Type>
-	Type* getComponent() {
+	__host__ __device__ Type* getComponent() {
 		Component* test = (Component*)(new Type());
-		TypeId id = (test->typeId();
+		TypeId id = (test->typeId());
 		delete test;
 
-		vector<Component*>* components = _isOnDevice ? &_componentsDevice : &_componentsHost;
-
-		for (int i = 0; i < components->size(); i++)
+		for (int i = 0; i < _components.size(); i++)
 		{
-			if ((*components)[i]->typeId() == id) {
-				return (*components)[i]);
+			if (_components[i]->typeId() == id) {
+				return _components[i];
 			}
 		}
 		
 		return nullptr;
 	}
 
-	vector<GameObject*>* gameObjects();
-	vector<Component*>* components();
+	__host__ __device__ Vector<GameObject>* gameObjects();
+	__host__ __device__ Vector<Component>* components();
 
 	__host__ void moveToHost() override;
 	__host__ void moveToDevice() override;

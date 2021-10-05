@@ -19,7 +19,7 @@ void startGame(UIDrawer* drawer)
 
 	GameObject cubeObj = GameObject();
 	Transform cubeTransform = Transform(&cubeObj);
-	Mesh cubeMesh = Mesh(&cubeObj, "Assets\\Cube.obj", 15);
+	Mesh cubeMesh = Mesh(&cubeObj, "Assets\\Cube.obj", 15, Vector3::ZERO());
 	cubeMesh.moveToCUDA();
 
 	cubeObj.addComponent(&cubeMesh);
@@ -30,7 +30,7 @@ void startGame(UIDrawer* drawer)
 	GeneralLight light = GeneralLight(&lightObj);
 
 	lightTransform.setPosition(Vector3(-2, 5, -1));
-	lightTransform.rotate(Quaternion::fromAngle(PI / 2, Vector3::RIGHT));
+	lightTransform.rotate(Quaternion::fromAngle(PI() / 2, Vector3::RIGHT()));
 
 	std::vector<GameObject*> gameObjects = { &camObj, &cubeObj, &lightObj };
 

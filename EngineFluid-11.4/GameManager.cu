@@ -61,7 +61,7 @@ void GameManager::run()
 
 	while (!_stopped) {
 		_fieldsMutex.lock();
-		vector<Component*>* components = _scenes[_currentSceneId]->components();
+		Vector<Component>* components = _scenes[_currentSceneId]->components();
 
 		for (int i = 0; i < components->size(); i++)
 		{
@@ -70,9 +70,16 @@ void GameManager::run()
 
 		delete components;
 
+		Scene* deviceScene = nullptr;
+		cudaMalloc(&deviceScene, sizeof(Scene));
+		cudaMemcpy(deviceScene, _scenes[_currentSceneId], sizeof(Scene), cudaMemcpyHostToDevice);
+
+		delete _scenes[_currentSceneId];
+
+		_scenes[_currentSceneId] = deviceScene;
 		_scenes[_currentSceneId]->moveToDevice();
 
-		vector<Component*>* components = _scenes[_currentSceneId]->components();
+		components = _scenes[_currentSceneId]->components();
 
 		for (int i = 0; i < components->size(); i++)
 		{
@@ -81,6 +88,11 @@ void GameManager::run()
 
 		delete components;
 
+		Scene* hostScene = new Scene();
+		cudaMemcpy(hostScene, _scenes[_currentSceneId], sizeof(Scene), cudaMemcpyDeviceToHost);
+		cudaFree(_scenes[_currentSceneId]);
+
+		_scenes[_currentSceneId] = hostScene;
 		_scenes[_currentSceneId]->moveToHost();
 
 		_fieldsMutex.unlock();
@@ -108,7 +120,7 @@ void GameManager::changeScene(int sceneIndex)
 
 	_currentSceneId = sceneIndex;
 
-	vector<Component*>* components = _scenes[_currentSceneId]->components();
+	Vector<Component>* components = _scenes[_currentSceneId]->components();
 
 	for (int i = 0; i < components->size(); i++)
 	{

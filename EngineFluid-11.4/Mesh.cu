@@ -2,26 +2,33 @@
 #include "assert.cuh"
 #include "ImportMesh.h"
 
-Vector3 Mesh::rotatePoint(Vector3 point, Quaternion rotation)
+__host__ __device__ Vector3 Mesh::rotatePoint(Vector3 point, Quaternion rotation)
 {
 	return _center + (rotation.applyToVector(point - _center));
 }
 
-int Mesh::countIntersections(Vector3 from, Vector3 direction)
+__host__ __device__ int Mesh::countIntersections(Vector3 from, Vector3 direction)
 {
 	int result = 0;
 	for (int i = 0; i < _triangles_size; i++)
 	{
 		Vector3 intersection = _triangles[i].rayIntersection(from, direction);
-		if (intersection != Vector3::INFINITY_VECTOR) {
+		if (intersection != Vector3::INFINITY_VECTOR()) {
 			result++;
 		}
 	}
+
+	return result;
 }
 
-Mesh::Mesh(GameObject* parent, Vector3 position, number_t scale) : Mesh(parent, (Triangle*)nullptr, 0, position, scale) {}
+__host__ __device__ Mesh::Mesh(GameObject* parent) : Component(parent)
+{
+	_triangles = nullptr;
+}
 
-Mesh::Mesh(GameObject* parent, Triangle* triangles, int size, Vector3 position, number_t scale) : Component(parent)
+__host__ __device__ Mesh::Mesh(GameObject* parent, Vector3 position, number_t scale) : Mesh(parent, (Triangle*)nullptr, 0, position, scale) {}
+
+__host__ __device__ Mesh::Mesh(GameObject* parent, Triangle* triangles, int size, Vector3 position, number_t scale) : Component(parent)
 {
 	assert(scale < -1 * EPSILON || scale > EPSILON);
 	_triangles = new Triangle[size];
@@ -31,13 +38,13 @@ Mesh::Mesh(GameObject* parent, Triangle* triangles, int size, Vector3 position, 
 		_triangles[i] = triangles[i];
 	}
 
-	_center = Vector3::ZERO;
+	_center = Vector3::ZERO();
 	translate(position);
 	_scale = 1;
 	setScale(scale);
 }
 
-Mesh::Mesh(GameObject* parent, const char* filename, int stringSize, Vector3 position, number_t scale) : Component(parent)
+__host__ Mesh::Mesh(GameObject* parent, const char* filename, int stringSize, Vector3 position, number_t scale) : Component(parent)
 {
 	assert(scale < -1 * EPSILON || scale > EPSILON);
 	
@@ -52,13 +59,13 @@ Mesh::Mesh(GameObject* parent, const char* filename, int stringSize, Vector3 pos
 
 	_triangles_size = triangles.size();
 
-	_center = Vector3::ZERO;
+	_center = Vector3::ZERO();
 	translate(position);
 	_scale = 1;
 	this->scale(scale);
 }
 
-void Mesh::moveToCUDA()
+__host__ void Mesh::moveToCUDA()
 {
 	Triangle* cudaTriangles = nullptr;
 	cudaMalloc((void**)&cudaTriangles, _triangles_size * sizeof(Triangle));
@@ -68,23 +75,23 @@ void Mesh::moveToCUDA()
 	_triangles = cudaTriangles;
 }
 
-const int Mesh::typeId() const
+__host__ __device__ int Mesh::typeId() const
 {
 	return MESH_TYPE_ID;
 }
 
-Triangle Mesh::get_triangle(int index)
+__host__ __device__ Triangle Mesh::get_triangle(int index)
 {
 	assert(0 <= index && index < _triangles_size);
 	return _triangles[index];
 }
 
-int Mesh::size()
+__host__ __device__ int Mesh::size()
 {
 	return _triangles_size;
 }
 
-void Mesh::rotate(Quaternion rotation)
+__host__ __device__ void Mesh::rotate(Quaternion rotation)
 {
 	for (int i = 0; i < _triangles_size; i++)
 	{
@@ -96,7 +103,7 @@ void Mesh::rotate(Quaternion rotation)
 	}
 }
 
-void Mesh::translate(Vector3 offset)
+__host__ __device__ void Mesh::translate(Vector3 offset)
 {
 	for (int i = 0; i < _triangles_size; i++)
 	{
@@ -108,26 +115,26 @@ void Mesh::translate(Vector3 offset)
 	}
 }
 
-bool Mesh::isPointInside(Vector3 point)
+__host__ __device__ bool Mesh::isPointInside(Vector3 point)
 {
-	Vector3 firstTry = Vector3::UP;
+	Vector3 firstTry = Vector3::UP();
 	int intersectionNumber = countIntersections(point, firstTry);
 	if (intersectionNumber % 2 == 1) {
 		return true;
 	}
 
-	Vector3 secondTry = Vector3::RIGHT;
+	Vector3 secondTry = Vector3::RIGHT();
 	intersectionNumber = countIntersections(point, secondTry);
 	return (intersectionNumber % 2 == 1);
 }
 
-void Mesh::setScale(number_t scale)
+__host__ __device__ void Mesh::setScale(number_t scale)
 {
 	assert(scale < -1 * EPSILON || scale > EPSILON);
 	this->scale(scale / _scale);
 }
 
-void Mesh::scale(number_t times)
+__host__ __device__ void Mesh::scale(number_t times)
 {
 	for (int i = 0; i < _triangles_size; i++)
 	{
@@ -139,17 +146,17 @@ void Mesh::scale(number_t times)
 	}
 }
 
-number_t Mesh::getScale()
+__host__ __device__ number_t Mesh::getScale()
 {
 	return _scale;
 }
 
-void Mesh::moveToDevice()
+__host__ void Mesh::moveToDevice()
 {
 	moveToCUDA();
 }
 
-void Mesh::moveToHost()
+__host__ void Mesh::moveToHost()
 {
 	Triangle* hostTriangles = new Triangle[_triangles_size];
 	cudaMemcpy(_triangles, hostTriangles, _triangles_size * sizeof(Triangle), cudaMemcpyDeviceToHost);

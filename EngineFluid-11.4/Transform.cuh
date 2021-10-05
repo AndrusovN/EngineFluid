@@ -16,9 +16,9 @@ private:
 
 	bool _isOnDevice = false;;
 public:
-	Transform(GameObject* parent);
+	__host__ __device__ Transform(GameObject* parent = nullptr);
 
-	__host__ __device__ const int typeId() const override;
+	__host__ __device__ int typeId() const override;
 
 	__host__ __device__ void rotate(Quaternion rotation) override;
 	__host__ __device__ void translate(Vector3 offset) override;

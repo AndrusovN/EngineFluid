@@ -7,16 +7,16 @@
 #include "device_launch_parameters.h"
 #include "assert.cuh"
 
-std::pair<Vector3, Triangle> Camera::rayCastGetTriangle(Vector3 startPoint, Vector3 direction)
+__device__ Pair<Vector3, Triangle> rayCastGetTriangle(Vector3 startPoint, Vector3 direction, Scene* scene)
 {
-	Scene* current = GameManager::instance()->getCurrentScene();
+	Scene* current = scene;
 
-	Triangle empty = Triangle(Vector3::ZERO, Vector3::ZERO, Vector3::ZERO);
+	Triangle empty = Triangle(Vector3::ZERO(), Vector3::ZERO(), Vector3::ZERO());
 
-	Vector3 nearestPoint = Vector3::INFINITY_VECTOR;
-	Triangle nearestTriangle = Triangle(Vector3::ZERO, Vector3::ZERO, Vector3::ZERO);
+	Vector3 nearestPoint = Vector3::INFINITY_VECTOR();
+	Triangle nearestTriangle = Triangle(Vector3::ZERO(), Vector3::ZERO(), Vector3::ZERO());
 
-	vector<Mesh*>* meshes = current->getComponents<Mesh>();
+	Vector<Mesh>* meshes = current->getComponents<Mesh>();
 
 	for (int i = 0; i < meshes->size(); i++)
 	{
@@ -39,13 +39,13 @@ std::pair<Vector3, Triangle> Camera::rayCastGetTriangle(Vector3 startPoint, Vect
 	return { nearestPoint, nearestTriangle };
 }
 
-EngineColor Camera::rayCast(Vector3 startPoint, Vector3 direction)
+__device__ EngineColor rayCast(Vector3 startPoint, Vector3 direction, Scene* scene)
 {
-	Scene* current = GameManager::instance()->getCurrentScene();
+	Scene* current = scene;
 
-	Triangle empty = Triangle(Vector3::ZERO, Vector3::ZERO, Vector3::ZERO);
+	Triangle empty = Triangle(Vector3::ZERO(), Vector3::ZERO(), Vector3::ZERO());
 
-	auto pointNtriangle = rayCastGetTriangle(startPoint, direction);
+	auto pointNtriangle = rayCastGetTriangle(startPoint, direction, scene);
 
 	Vector3 nearestPoint = pointNtriangle.first;
 	Triangle nearestTriangle = pointNtriangle.second;
@@ -56,7 +56,7 @@ EngineColor Camera::rayCast(Vector3 startPoint, Vector3 direction)
 
 	EngineColor result = EngineColor(0, 0, 0, 1);
 
-	vector<GeneralLight*>* lights = current->getComponents<GeneralLight>();
+	Vector<GeneralLight>* lights = current->getComponents<GeneralLight>();
 
 	for (int i = 0; i < lights->size(); i++)
 	{
@@ -64,7 +64,7 @@ EngineColor Camera::rayCast(Vector3 startPoint, Vector3 direction)
 		Vector3 lightPosition = light->gameObject()->getComponentOfType<Transform>()->position();
 
 		if (nearestTriangle.normal().angle_cos(lightPosition - nearestPoint) > 0) {
-			auto pointNTriangleLight = rayCastGetTriangle(nearestPoint, lightPosition - nearestPoint);
+			auto pointNTriangleLight = rayCastGetTriangle(nearestPoint, lightPosition - nearestPoint, scene);
 			if (Vector3::sqrDistance(nearestPoint, lightPosition) < Vector3::sqrDistance(nearestPoint, pointNTriangleLight.first)) {
 				result = result + light->getLight(nearestTriangle.normal());
 			}
@@ -76,7 +76,8 @@ EngineColor Camera::rayCast(Vector3 startPoint, Vector3 direction)
 	return result;
 }
 
-__global__ void Camera::castRays(EngineColor* map, Vector3 xPixelVector, Vector3 yPixelVector, Vector3 position, Vector3 forward)
+__global__ void castRays(EngineColor* map, Vector3 xPixelVector, Vector3 yPixelVector, 
+	Vector3 position, Vector3 forward, number_t minRenderDistance, number_t maxRenderDistance, Scene* scene)
 {
 	int x = blockIdx.x;
 	int y = threadIdx.x;
@@ -90,12 +91,12 @@ __global__ void Camera::castRays(EngineColor* map, Vector3 xPixelVector, Vector3
 
 	
 	Vector3 direction = forward + xPixelVector * x + yPixelVector * y;
-	Vector3 startPoint = position + direction * _minRenderDistance;
+	Vector3 startPoint = position + direction * minRenderDistance;
 
-	map[x * height + y] = rayCast(startPoint, direction);
+	map[x * height + y] = rayCast(startPoint, direction, scene);
 }
 
-void Camera::renderColorsOnCUDA()
+__host__ void Camera::renderColorsOnCUDA()
 {
 	int width = renderSpace.x2 - renderSpace.x1;
 	int height = renderSpace.y2 - renderSpace.y1;
@@ -107,7 +108,8 @@ void Camera::renderColorsOnCUDA()
 	Vector3 yPixel = _transform->up() * tanf(_angleY / 2) * 2;
 
 
-	castRays <<< width, height >>> (device_map, xPixel, yPixel, _transform->position(), _transform->forward());
+	castRays<<< width, height >>>(device_map, xPixel, yPixel, _transform->position(), _transform->forward(), 
+		_minRenderDistance, _maxRenderDistance, GameManager::instance()->getCurrentScene());
 
 	EngineColor* map = new EngineColor[width * height];
 	cudaMemcpy(map, device_map, height * width* sizeof(EngineColor), cudaMemcpyDeviceToHost);
@@ -132,12 +134,22 @@ void Camera::renderColorsOnCUDA()
 	_drawer->resetColorMap(total_map);
 }
 
-const int Camera::typeId() const 
+__host__ __device__ int Camera::typeId() const 
 {
 	return CAMERA_TYPE_ID;
 }
 
-Camera::Camera(GameObject* parent, UIDrawer* drawer, rect renderRect, number_t angleX, number_t angleY) : Component(parent), _drawer(drawer)
+__host__ __device__ Camera::Camera(GameObject* parent) : Component(parent)
+{
+	_drawer = nullptr;
+	_angleX = 0;
+	_angleY = 0;
+	_minRenderDistance = 0;
+	_maxRenderDistance = 1;
+	_transform = nullptr;
+}
+
+__host__ __device__ Camera::Camera(GameObject* parent, UIDrawer* drawer, rect renderRect, number_t angleX, number_t angleY) : Component(parent), _drawer(drawer)
 {
 	assert(angleX > 0);
 	assert(angleY > 0);
@@ -147,7 +159,7 @@ Camera::Camera(GameObject* parent, UIDrawer* drawer, rect renderRect, number_t a
 	_angleY = angleY;
 }
 
-Camera::Camera(GameObject* parent, 
+__host__ __device__ Camera::Camera(GameObject* parent, 
 	UIDrawer* drawer, rect renderRect, number_t angleX, number_t angleY, 
 	number_t minRenderDistance, number_t maxRenderDistance) : Component(parent), _drawer(drawer)
 {
@@ -157,32 +169,32 @@ Camera::Camera(GameObject* parent,
 	assert(maxRenderDistance > 0);
 
 	renderSpace = renderRect;
-	_angleY = angleY / 180 * PI;
-	_angleX = angleX / 180 * PI;
+	_angleY = angleY / 180 * PI();
+	_angleX = angleX / 180 * PI();
 	_minRenderDistance = minRenderDistance;
 	_maxRenderDistance = maxRenderDistance;
 }
 
-void Camera::awake()
+__host__ __device__ void Camera::awake()
 {
 	_transform = gameObject()->getComponentOfType<Transform>();
 	assert(_transform != nullptr);
 }
 
-void Camera::deviceUpdate()
+__host__ void Camera::deviceUpdate()
 {
 	renderColorsOnCUDA();
 }
 
-void Camera::moveToDevice()
+__host__ void Camera::moveToDevice()
 {
 }
 
-void Camera::moveToHost()
+__host__ void Camera::moveToHost()
 {
 }
 
-void Camera::resetGameObject(GameObject* object)
+__host__ __device__ void Camera::resetGameObject(GameObject* object)
 {
 	Component::resetGameObject(object);
 	_transform = object->getComponentOfType<Transform>();

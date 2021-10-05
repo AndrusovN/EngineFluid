@@ -1,56 +1,54 @@
 #include "Quaternion.cuh"
 #include "assert.h"
 
-const Quaternion Quaternion::IDENTITY = Quaternion(1, 0, 0, 0);
+__host__ __device__ Quaternion::Quaternion(number_t x, number_t y, number_t z, number_t w) : _x(x), _y(y), _z(z), _w(w) {}
 
-Quaternion::Quaternion(number_t x, number_t y, number_t z, number_t w) : _x(x), _y(y), _z(z), _w(w) {}
+__host__ __device__ Quaternion::Quaternion() : _x(0), _y(0), _z(0), _w(0) {}
 
-Quaternion::Quaternion() : _x(0), _y(0), _z(0), _w(0) {}
+__host__ __device__ Quaternion::Quaternion(const Vector3& base) : _x(0), _y(base.x()), _z(base.y()), _w(base.z()) {}
 
-Quaternion::Quaternion(const Vector3& base) : _x(0), _y(base.x()), _z(base.y()), _w(base.z()) {}
-
-const Quaternion Quaternion::operator*(number_t value) const
+__host__ __device__ const Quaternion Quaternion::operator*(number_t value) const
 {
 	return Quaternion(_x * value, _y * value, _z * value, _w * value);
 }
 
-const Quaternion Quaternion::operator/(number_t value) const
+__host__ __device__ const Quaternion Quaternion::operator/(number_t value) const
 {
 	assert(value > EPSILON);
 	return *this * ((number_t)1 / value);
 }
 
-Quaternion Quaternion::operator*=(number_t value)
+__host__ __device__ Quaternion Quaternion::operator*=(number_t value)
 {
 	return *this = *this * value;
 }
 
-Quaternion Quaternion::operator/=(number_t value)
+__host__ __device__ Quaternion Quaternion::operator/=(number_t value)
 {
 	return *this = *this / value;
 }
 
-const Quaternion Quaternion::operator+(const Quaternion& other) const
+__host__ __device__ const Quaternion Quaternion::operator+(const Quaternion& other) const
 {
 	return Quaternion(_x + other._x, _y + other._y, _z + other._z, _w + other._w);
 }
 
-const Quaternion Quaternion::operator-(const Quaternion& other) const
+__host__ __device__ const Quaternion Quaternion::operator-(const Quaternion& other) const
 {
 	return *this + (other * -1);
 }
 
-Quaternion Quaternion::operator+=(const Quaternion& other)
+__host__ __device__ Quaternion Quaternion::operator+=(const Quaternion& other)
 {
 	return *this = *this + other;
 }
 
-Quaternion Quaternion::operator-=(const Quaternion& other)
+__host__ __device__ Quaternion Quaternion::operator-=(const Quaternion& other)
 {
 	return *this = *this - other;
 }
 
-const Quaternion Quaternion::operator*(const Quaternion& other) const
+__host__ __device__ const Quaternion Quaternion::operator*(const Quaternion& other) const
 {
 	number_t x = _x * other._x 
 				- _y * other._y 
@@ -75,22 +73,22 @@ const Quaternion Quaternion::operator*(const Quaternion& other) const
 	return Quaternion(x, y, z, w);
 }
 
-const Quaternion Quaternion::operator/(const Quaternion& other) const
+__host__ __device__ const Quaternion Quaternion::operator/(const Quaternion& other) const
 {
 	return *this * other.inversed();
 }
 
-Quaternion Quaternion::operator*=(const Quaternion& other)
+__host__ __device__ Quaternion Quaternion::operator*=(const Quaternion& other)
 {
 	return *this = *this * other;
 }
 
-Quaternion Quaternion::operator/=(const Quaternion& other)
+__host__ __device__ Quaternion Quaternion::operator/=(const Quaternion& other)
 {
 	return *this = *this / other;
 }
 
-const bool Quaternion::operator==(const Quaternion& other) const
+__host__ __device__ bool Quaternion::operator==(const Quaternion& other) const
 {
 	return _x == other._x &&
 		_y == other._y &&
@@ -98,42 +96,42 @@ const bool Quaternion::operator==(const Quaternion& other) const
 		_w == other._w;
 }
 
-const bool Quaternion::operator!=(const Quaternion& other) const
+__host__ __device__ bool Quaternion::operator!=(const Quaternion& other) const
 {
 	return !(*this == other);
 }
 
-const Quaternion Quaternion::conjugated() const
+__host__ __device__ const Quaternion Quaternion::conjugated() const
 {
 	return Quaternion(_x, -_y, -_z, -_w);
 }
 
-const Quaternion Quaternion::inversed() const
+__host__ __device__ const Quaternion Quaternion::inversed() const
 {
 	return conjugated() / sqrMagnitude();
 }
 
-const number_t Quaternion::magnitude() const
+__host__ __device__ number_t Quaternion::magnitude() const
 {
 	return SQRT(sqrMagnitude());
 }
 
-const number_t Quaternion::sqrMagnitude() const
+__host__ __device__ number_t Quaternion::sqrMagnitude() const
 {
 	return (*this * conjugated())._x;
 }
 
-const Vector3 Quaternion::toVector3() const
+__host__ __device__ const Vector3 Quaternion::toVector3() const
 {
 	return Vector3(_y, _z, _w);
 }
 
-const Vector3 Quaternion::applyToVector(Vector3 vector) const
+__host__ __device__ const Vector3 Quaternion::applyToVector(Vector3 vector) const
 {
 	return (*this * Quaternion(vector) * inversed()).toVector3();
 }
 
-Quaternion Quaternion::fromAngle(number_t angle, Vector3 axis)
+__host__ __device__ Quaternion Quaternion::fromAngle(number_t angle, Vector3 axis)
 {
 	return Quaternion(cosf(angle / 2), 0, 0, 0) + Quaternion(axis) * sinf(angle / 2);
 }
